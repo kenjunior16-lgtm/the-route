@@ -22,8 +22,11 @@ class MainActivity : ComponentActivity() {
         requestedOrientation = if (vm.repo.allowRotation) ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED else ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         vm.resumeTrackingIfLive()
         setContent {
-            MaterialTheme {
-                Surface {
+            RouteTheme {
+                Surface(
+                    color = MaterialTheme.colorScheme.background,
+                    contentColor = MaterialTheme.colorScheme.onBackground,
+                ) {
                     val screen by vm.screen.collectAsState()
                     when (screen) {
                         Screen.HOME -> HomeScreen(vm)
