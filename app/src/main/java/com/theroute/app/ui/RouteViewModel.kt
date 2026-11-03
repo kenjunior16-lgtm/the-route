@@ -115,14 +115,26 @@ class RouteViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 .addOnFailureListener { say("Could not get a GPS fix. Check location permission.") }
         } catch (_: SecurityException) { say("Location permission is needed to place this on the map.") }
+        catch (_: Exception) { say("Could not get a GPS fix. Check location permission and that GPS is on.") }
     }
 
     fun addVendor(name: String, type: String, price: String) {
-        withLocation { lat, lon ->
-            viewModelScope.launch {
-                repo.addVendor(Vendor(name = name, itemType = type, priceRange = price, lat = lat, lon = lon))
-                refresh(); go(Screen.VENDORS)
+        if (name.isBlank()) { say("Enter a vendor name first."); return }
+        try {
+            withLocation { lat, lon ->
+                viewModelScope.launch {
+                    try {
+                        repo.addVendor(Vendor(name = name, itemType = type, priceRange = price, lat = lat, lon = lon))
+                        refresh(); go(Screen.VENDORS)
+                    } catch (e: Exception) {
+                        // Never let a failed drop kill the app: stay on the
+                        // form and show what went wrong instead of closing.
+                        say("Couldn't drop that plate: ${e.message ?: "unknown error"}. Check location permission and try again.")
+                    }
+                }
             }
+        } catch (e: Exception) {
+            say("Couldn't drop that plate: ${e.message ?: "unknown error"}. Check location permission and try again.")
         }
     }
     fun promoteVendor(id: Long) {
